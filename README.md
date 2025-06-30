@@ -55,3 +55,5 @@ Tüm kurulum adımları tamamlandıktan sonra, FastAPI uygulamasını Uvicorn il
 uvicorn main:app --reload
 ```
 Uygulama `http://127.0.0.1:8000` adresinde çalışıyor olacaktır.
+
+Uygulamayı test ederken musicAPP_medya klasörü içerisindeki ses ve kapak fotoğrafı dosyalarını kullanabilirsibiz.
