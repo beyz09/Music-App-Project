@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+pyodbc
+Jinja2
+python-multipart 
