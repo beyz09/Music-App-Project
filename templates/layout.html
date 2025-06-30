@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title | default('Kişisel Müzik Arşivi') }}</title>
+    <link rel="icon" href="{{ url_for('static', path='images/favicon.svg') }}" type="image/svg+xml">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-music-note-beamed"></i> Kişisel Müzik Arşivi
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Tüm Şarkılar</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('playlists_list') }}">Çalma Listelerim</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4 mb-5 pb-5">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="player-container" class="player-bar d-none">
+        <div class="d-flex align-items-center w-100">
+            <!-- Şarkı Bilgisi -->
+            <div style="width: 250px;">
+                <div class="d-flex align-items-center">
+                    <img id="player-album-art" src="https://via.placeholder.com/60" alt="Kapak" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                    <div class="flex-grow-1">
+                        <div id="player-song-title" class="fw-bold text-truncate">Şarkı Seçilmedi</div>
+                        <div id="player-artist-name" class="small text-muted text-truncate">...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kontroller -->
+            <div class="flex-grow-1 px-4">
+                <div class="d-flex justify-content-center align-items-center mb-1">
+                     <button id="play-pause-btn" class="btn btn-info text-white rounded-circle mx-2">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span id="current-time" class="small text-muted me-2" style="width: 40px;">0:00</span>
+                    <input type="range" id="progress-bar" class="form-range" value="0" step="1">
+                    <span id="duration" class="small text-muted ms-2" style="width: 40px;">0:00</span>
+                </div>
+            </div>
+
+            <!-- Ses Kontrolü -->
+            <div class="d-flex align-items-center" style="width: 200px;">
+                <i class="bi bi-volume-up-fill fs-5"></i>
+                <input type="range" id="volume-slider" class="form-range ms-2" min="0" max="1" step="0.01" value="1">
+            </div>
+        </div>
+        <audio id="audio-player" class="d-none"></audio>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Player elementleri
+        const audioPlayer = document.getElementById('audio-player');
+        const playerContainer = document.getElementById('player-container');
+        const playerSongTitle = document.getElementById('player-song-title');
+        const playerArtistName = document.getElementById('player-artist-name');
+        const playerAlbumArt = document.getElementById('player-album-art');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = 'bi-play-fill';
+        const pauseIcon = 'bi-pause-fill';
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const volumeSlider = document.getElementById('volume-slider');
+
+        // Şarkı çalma fonksiyonu
+        function playSong(audioUrl, songTitle, coverArtUrl, artistName) {
+            if (audioUrl && audioUrl !== 'None') {
+                playerContainer.classList.remove('d-none');
+                
+                if (audioPlayer.src.endsWith(audioUrl) && !audioPlayer.paused) {
+                    audioPlayer.pause();
+                    return;
+                }
+                if (audioPlayer.src.endsWith(audioUrl) && audioPlayer.paused) {
+                    audioPlayer.play();
+                    return;
+                }
+
+                audioPlayer.src = audioUrl;
+                playerSongTitle.textContent = songTitle || 'Bilinmeyen Şarkı';
+                playerArtistName.textContent = artistName || 'Bilinmeyen Sanatçı';
+                playerAlbumArt.src = coverArtUrl || 'https://via.placeholder.com/60';
+                
+                audioPlayer.play();
+            } else {
+                console.warn("Geçersiz ses dosyası URL'si:", audioUrl);
+            }
+        }
+
+        // Çal/Durdur butonu
+        playPauseBtn.addEventListener('click', () => {
+            if (!audioPlayer.src || audioPlayer.src === window.location.href) return;
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        });
+
+        // Buton ikonunu senkronize et
+        audioPlayer.addEventListener('play', () => {
+            playPauseBtn.querySelector('i').classList.replace(playIcon, pauseIcon);
+        });
+        audioPlayer.addEventListener('pause', () => {
+            playPauseBtn.querySelector('i').classList.replace(pauseIcon, playIcon);
+        });
+
+        // Zaman formatlama
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // İlerleme çubuğunu ve zamanı güncelle
+        audioPlayer.addEventListener('timeupdate', () => {
+            if (audioPlayer.duration) {
+                progressBar.value = audioPlayer.currentTime;
+                currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+            }
+        });
+        audioPlayer.addEventListener('loadedmetadata', () => {
+             progressBar.max = audioPlayer.duration;
+             durationEl.textContent = formatTime(audioPlayer.duration);
+        });
+
+        // İlerleme çubuğu ile şarkıda gezinme
+        progressBar.addEventListener('input', () => {
+            audioPlayer.currentTime = progressBar.value;
+        });
+
+        // Ses ayarı
+        volumeSlider.addEventListener('input', (e) => {
+            audioPlayer.volume = e.target.value;
+        });
+
+        // Başlangıç ikonu
+        playPauseBtn.querySelector('i').classList.add(playIcon);
+
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

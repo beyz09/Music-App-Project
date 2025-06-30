@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block title %}Çalma Listelerim{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <!-- Mevcut Çalma Listeleri Sütunu -->
+        <div class="col-md-7">
+            <h1 class="mb-4">Çalma Listelerim</h1>
+            
+            {% if playlists %}
+                <div class="list-group">
+                    {% for playlist in playlists %}
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <!-- === DÜZELTİLEN KISIM BURASI === -->
+                            <!-- Rota adı 'playlist_detail_page' yerine 'playlist_detail' olarak değiştirildi -->
+                            <a href="{{ url_for('playlist_detail', playlist_id=playlist.PlaylistID) }}" class="text-decoration-none text-dark flex-grow-1">
+                                <div class="d-flex align-items-center">
+                                    {% if playlist.CoverImageUrl %}
+                                        <img src="{{ playlist.CoverImageUrl }}" alt="Kapak" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="me-3" style="width: 50px; height: 50px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: .25rem;">
+                                            <i class="bi bi-music-note-list fs-4 text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <span class="fs-5">{{ playlist.PlaylistName }}</span>
+                                </div>
+                            </a>
+
+                            <!-- Silme Butonu -->
+                            <form action="{{ url_for('delete_playlist', playlist_id=playlist.PlaylistID) }}" method="post" class="ms-3">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Sil"
+                                        onclick="return confirm('`{{ playlist.PlaylistName }}` adlı listeyi silmek istediğinizden emin misiniz?');">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Henüz bir çalma listeniz yok. Sağdaki formu kullanarak yeni bir tane oluşturun.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Yeni Çalma Listesi Oluşturma Sütunu -->
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Yeni Çalma Listesi Oluştur</h3>
+                    <form action="{{ url_for('add_playlist') }}" method="post">
+                        <div class="mb-3">
+                            <label for="playlist_name" class="form-label">Liste Adı</label>
+                            <input type="text" class="form-control" id="playlist_name" name="playlist_name" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Oluştur</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block title %}Tüm Şarkılar{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Tüm Şarkılar</h1>
+        <a href="{{ url_for('add_song_form') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Yeni Şarkı Ekle
+        </a>
+    </div>
+
+    {% if songs %}
+        <table class="table song-table">
+            <thead>
+                <tr class="text-muted">
+                    <th scope="col" class="ps-3" style="width: 5%;">#</th>
+                    <th scope="col" style="width: 45%;">Başlık</th>
+                    <th scope="col" style="width: 30%;">Albüm</th>
+                    <th scope="col" style="width: 10%;" class="text-center"><i class="bi bi-clock"></i></th>
+                    <th scope="col" style="width: 10%;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for song in songs %}
+                <tr class="song-row" 
+                    onclick="playSong(
+                        '{{ song.AudioUrl }}', 
+                        '{{ song.SongTitle }}',
+                        '{{ url_for('media', path=song.CoverArtUrl.replace('/media/', '')) if song.CoverArtUrl and song.CoverArtUrl != 'None' else 'https://via.placeholder.com/60' }}',
+                        '{{ song.ArtistName }}'
+                    )">
+                    <th scope="row" class="text-muted ps-3">{{ loop.index }}</th>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ url_for('media', path=song.CoverArtUrl.replace('/media/', '')) if song.CoverArtUrl and song.CoverArtUrl != 'None' else 'https://via.placeholder.com/40' }}" 
+                                 alt="{{ song.SongTitle }}" 
+                                 class="song-cover-art me-3">
+                            <div>
+                                <div class="fw-bold text-dark">{{ song.SongTitle }}</div>
+                                <div class="small text-muted">{{ song.ArtistName }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted">{{ song.AlbumTitle }}</td>
+                    <td class="text-muted">{{ '%d:%02d' % (song.DurationSeconds // 60, song.DurationSeconds % 60) if song.DurationSeconds else 'N/A' }}</td>
+                    <td class="text-end song-controls">
+                        <a href="{{ url_for('edit_song_form', song_id=song.SongID) }}" class="btn btn-link btn-sm text-dark" title="Düzenle" onclick="event.stopPropagation();">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ url_for('delete_song', song_id=song.SongID) }}" method="post" class="d-inline" onsubmit="return confirm('Bu şarkıyı silmek istediğinizden emin misiniz?');" onclick="event.stopPropagation();">
+                            <button type="submit" class="btn btn-link btn-sm text-danger" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            Sistemde henüz hiç şarkı bulunmuyor. Eklemek için "Yeni Şarkı Ekle" butonunu kullanın.
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+{# playSong fonksiyonu layout.html içinde global olarak tanımlandığı için burada tekrar scripte gerek yok. #}
+{% endblock %}

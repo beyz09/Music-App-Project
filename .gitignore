@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+env/
+ENV/
+
+# Visual Studio Code
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Yüklenen medya dosyalarını GİT'e gönderme
+# Bu klasörlerin yapısı korunmalı ama içleri boş olmalı
+wwwroot/audio/*
+!wwwroot/audio/.gitkeep
+wwwroot/images/*
+!wwwroot/images/.gitkeep

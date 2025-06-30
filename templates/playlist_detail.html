@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block title %}Çalma Listesi: {{ playlist.PlaylistName }}{% endblock %}
+
+{% block content %}
+    <!-- BAŞLIK VE YÖNETİM BUTONLARI -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            {% if playlist.CoverImageUrl %}
+                <img src="{{ url_for('media', path=playlist.CoverImageUrl.replace('/media/', '')) }}" alt="Kapak Resmi" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
+            {% else %}
+                <img src="https://via.placeholder.com/80" alt="Kapak Resmi" class="rounded me-3">
+            {% endif %}
+            <h1 class="mb-0">{{ playlist.PlaylistName }}</h1>
+        </div>
+        <div>
+            <!-- Modal pencerelerini açan butonlar -->
+            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#coverModal">
+                <i class="bi bi-image"></i> Kapak Değiştir
+            </button>
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#renameModal">
+                <i class="bi bi-pencil-square"></i> Adını Değiştir
+            </button>
+        </div>
+    </div>
+
+    <!-- ANA İÇERİK (Şarkılar ve Ekleme Formu) -->
+    <div class="row">
+        <!-- Mevcut Şarkılar Listesi -->
+        <div class="col-md-7">
+            <h3>Listedeki Şarkılar</h3>
+            {% if songs_in_playlist %}
+                <ul class="list-group">
+                    {% for song in songs_in_playlist %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span 
+                                onclick="playSong('{{ song.AudioUrl }}', '{{ song.SongTitle }}')" 
+                                class="fw-bold" 
+                                style="cursor: pointer;"
+                                title="Çal: {{ song.SongTitle }}">
+                                <i class="bi bi-play-circle-fill me-2"></i>{{ song.SongTitle }}
+                            </span>
+                            <form action="{{ url_for('remove_song_from_playlist', playlist_id=playlist.PlaylistID, song_id=song.SongID) }}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i> Kaldır
+                                </button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Bu çalma listesinde henüz şarkı yok.</p>
+            {% endif %}
+        </div>
+
+        <!-- Listeye Şarkı Ekleme Formu -->
+        <div class="col-md-5">
+            <h3>Listeye Şarkı Ekle</h3>
+            <div class="card">
+                <div class="card-body">
+                    <form action="{{ url_for('add_song_to_playlist', playlist_id=playlist.PlaylistID) }}" method="post">
+                        <div class="mb-3">
+                            <label for="song_id" class="form-label">Eklenecek Şarkı</label>
+                            <select class="form-select" id="song_id" name="song_id" required>
+                                <option value="" disabled selected>Bir şarkı seçin...</option>
+                                {% for song in all_songs %}
+                                    <option value="{{ song.SongID }}">{{ song.SongTitle }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle"></i> Ekle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================================================= -->
+    <!--                   MODAL PENCERELERİ                    -->
+    <!-- ======================================================= -->
+
+    <!-- 1. Liste Adını Değiştirme Modalı -->
+    <div class="modal fade" id="renameModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ url_for('rename_playlist', playlist_id=playlist.PlaylistID) }}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Listeyi Yeniden Adlandır</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="new_playlist_name" class="form-label">Yeni Liste Adı</label>
+                        <input type="text" class="form-control" id="new_playlist_name" name="new_playlist_name" value="{{ playlist.PlaylistName }}" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Kapak Fotoğrafı Değiştirme Modalı -->
+    <div class="modal fade" id="coverModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ url_for('update_playlist_cover', playlist_id=playlist.PlaylistID) }}" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Kapak Fotoğrafını Değiştir</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="cover_image_file" class="form-label">Yeni Kapak Resmi Seçin</label>
+                        <input class="form-control" type="file" id="cover_image_file" name="cover_image_file" accept="image/*" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                        <button type="submit" class="btn btn-primary">Yükle ve Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

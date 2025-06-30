@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ 'Şarkı Düzenle' if song else 'Yeni Şarkı Ekle' }}{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">{{ 'Şarkı Düzenle: ' + song.SongTitle if song else 'Yeni Şarkı Ekle' }}</h1>
+
+    <form action="{{ '/songs/edit/' + song.SongID|string if song else '/songs/add' }}" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="song_title" class="form-label">Şarkı Adı</label>
+            <input type="text" class="form-control" id="song_title" name="song_title" value="{{ song.SongTitle if song }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="album_id" class="form-label">Albüm</label>
+            <select class="form-select" id="album_id" name="album_id" required>
+                {% for album in albums %}
+                    <option value="{{ album.AlbumID }}" {% if song and song.AlbumID == album.AlbumID %}selected{% endif %}>
+                        {{ album.AlbumTitle }} ({{ album.ArtistName }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="duration" class="form-label">Süre (saniye)</label>
+            <input type="number" class="form-control" id="duration" name="duration" value="{{ song.DurationSeconds if song }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="audio_file" class="form-label">Ses Dosyası (.mp3)</label>
+            <input class="form-control" type="file" id="audio_file" name="audio_file" accept="audio/*">
+            {% if song and song.AudioUrl %}
+                <small class="d-block mt-1">Mevcut dosya: <a href="{{ song.AudioUrl }}" target="_blank">Dinle</a></small>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="cover_art_file" class="form-label">Kapak Fotoğrafı (.jpg, .png)</label>
+            <input class="form-control" type="file" id="cover_art_file" name="cover_art_file" accept="image/*">
+            {% if song and song.CoverArtUrl %}
+                <div class="mt-2">
+                    <small>Mevcut Kapak:</small><br>
+                    <img src="{{ url_for('media', path=song.CoverArtUrl.replace('/media/', '')) }}" alt="Mevcut Kapak" style="max-width: 150px; border-radius: 5px;">
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">{{ 'Güncelle' if song else 'Ekle' }}</button>
+        <a href="/" class="btn btn-secondary">İptal</a>
+    </form>
+{% endblock %}
